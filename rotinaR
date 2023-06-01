@@ -1,0 +1,148 @@
+#instalando os pacotes
+
+install.packages("MVN",dependencies=TRUE)
+install.packages("plotrix",dependencies=TRUE)
+install.packages("ellipse",dependencies=TRUE)
+install.packages("psych",dependencies=TRUE)
+install.packages("FactoMineR",dependencies=TRUE)
+install.packages("factoextra",dependencies=TRUE)
+
+#referencia bibliografica
+
+citation()
+citation("MVN")
+citation("plotrix")
+citation("ellipse")
+citation("psych")
+citation("FactoMineR")
+citation("factoextra")
+
+#lendo os dados
+dados <-read.table("dadoscancer.txt",header=T) 
+dados
+
+#analise descritiva dos dados
+summary(dados)
+round(sd(dados$X1), digits=2)
+round(sd(dados$X2), digits=2)
+round(sd(dados$X3), digits=2)
+round(sd(dados$X4), digits=2)
+round(sd(dados$X5), digits=2)
+round(sd(dados$X6), digits=2)
+round(sd(dados$X7), digits=2)
+round(sd(dados$X8), digits=2)
+round(sd(dados$X9), digits=2)
+round(sd(dados$X10), digits=2)
+round(sd(dados$X11), digits=2)
+round(sd(dados$X12), digits=2)
+round(sd(dados$X13), digits=2)
+round(sd(dados$X14), digits=2)
+round(sd(dados$X15), digits=2)
+
+boxplot(dados, col="gray")
+
+#teste de normalidade
+
+library(MVN) #baixando o pacote
+
+qqplot <- mvn(dados, multivariatePlot = "qq")
+
+teste_normalidade <- mvn(data = dados, mvnTest = "mardia")
+teste_normalidade
+
+#obtendo a matriz de correla??o
+
+matriz_correlacao <- round(cor(dados), 2)
+matriz_correlacao
+
+#grafico para representar a matriz de correlacao
+
+#funcao disponivel em help(pairs), porem com algumas modificacoes
+
+panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
+{
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  r <- round(cor(x, y),2)
+  txt <- format(c(r, 0.123456789), digits = digits)[1]
+  txt <- paste0(prefix, txt)
+  if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
+  text(0.5, 0.5, txt, cex = 1.5)
+}
+
+pairs(dados,  upper.panel = panel.cor)
+
+#grafico para representar a matriz de correlacao
+
+library(plotrix)
+library(ellipse)
+ 
+mcores<- color.scale(1-abs(matriz_correlacao))
+plotcorr(matriz_correlacao, col=mcores)
+
+
+#teste de esfericidade de Bartlett
+
+library(psych)
+
+cortest.bartlett(matriz_correlacao,n=27)
+
+# Analise de componentes principais
+
+library(FactoMineR)
+
+acp.cor <- PCA(dados, scale.unit = T, graph = FALSE, ncp=15)
+
+round(acp.cor$eig,2) #autovalores
+round(acp.cor$svd$V,2) #autovetores
+
+par(mfrow = c(2,2))
+
+#grafico de barras contendo a importancia das variaveis no primeiro componente
+
+barplot(acp.cor$svd$V [,1], beside=TRUE,ylim = c(-0.3, 0.4), ylab="Importancia",xlab="Variaveis", names.arg = c("X1","X2","X3","X4","X5","X6","X7","X8","X9",
+"X10","X11","X12","X13","X14","X15"),main="Componente 1")
+
+#grafico de barras contendo a importancia das variaveis no segundo componente
+
+barplot(acp.cor$svd$V [,2], beside=TRUE,ylim = c(-0.5, 0.5), ylab="Importancia",xlab="Variaveis", names.arg = c("X1","X2","X3","X4","X5","X6","X7","X8","X9",
+"X10","X11","X12","X13","X14","X15"),main="Componente 2")
+
+#grafico de barras contendo a importancia das variaveis no terceiro componente
+
+barplot(acp.cor$svd$V [,2], beside=TRUE,ylim = c(-0.5, 0.5), ylab="Import?ncia",xlab="Vari?veis", names.arg = c("X1","X2","X3","X4","X5","X6","X7","X8","X9",
+"X10","X11","X12","X13","X14","X15"),main="Componente 3")
+
+#grafico de barras contendo a importancia das variaveis no quarto componente
+
+barplot(acp.cor$svd$V [,2], beside=TRUE,ylim = c(-0.5, 0.5), ylab="Importancia",xlab="Variaveis", names.arg = c("X1","X2","X3","X4","X5","X6","X7","X8","X9",
+"X10","X11","X12","X13","X14","X15"),main="Componente 4")
+
+library(factoextra)
+
+#visualiza??o dos autovalores
+
+fviz_eig(acp.cor, choice = "eigenvalue",ncp=15, axes = 1,title="",xlab="Ordem dos componentes",   ylab="Autovalores", addlabels=TRUE)+ theme_minimal()
+
+#porcentagem da variacaoo explicada pelo componente
+
+fviz_screeplot(acp.cor, ncp=15, title="", xlab="Ordem dos componentes", ylab="Porcentagens da variancia total explicada pelo componente", addlabels=TRUE)+ theme_minimal()
+
+#correlacao entre a variavel e o componente principal
+
+round(acp.cor$var$cor,2)
+
+fviz_pca_var(acp.cor, title="", xlab="CP1%)", ylab="CP2") + theme_minimal()
+
+#obtencaoo dos escores
+
+round(acp.cor$ind$coord,2)
+
+#biplot
+
+fviz_pca_biplot(acp.cor,title="", xlab="CP1", ylab="CP2") + theme_minimal()
+
+
+
+
+
